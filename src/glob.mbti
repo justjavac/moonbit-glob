@@ -1,3 +1,4 @@
+// Generated using `moon info`, DON'T EDIT IT
 package "justjavac/glob"
 
 // Values
@@ -20,6 +21,8 @@ fn match_any_pattern(Array[String], String) -> Bool
 fn match_char(Char, Char) -> Bool
 
 fn match_here(String, String) -> Bool
+
+// Errors
 
 // Types and methods
 

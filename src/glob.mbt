@@ -103,7 +103,7 @@ pub fn is_path_separator(c : Char) -> Bool {
 /// ```
 pub fn get_char(s : String, index : Int) -> Char? {
   if index >= 0 && index < s.length() {
-    let code = s.charcode_at(index)
+    let code = s[index]
     Some(code.unsafe_to_char())
   } else {
     None
