@@ -36,7 +36,8 @@
 /// assert_eq(escape_glob("file[1].txt"), "file\\[1\\].txt") // escapes special characters for literal matching
 /// ```
 
-///| Basic character matching function that supports the '?' wildcard character.
+///|
+/// Basic character matching function that supports the '?' wildcard character.
 /// 
 /// This function compares a pattern character with a text character.
 /// The '?' character in the pattern acts as a wildcard that matches any single character.
@@ -59,7 +60,8 @@ pub fn match_char(pattern : Char, char : Char) -> Bool {
   pattern == '?' || pattern == char
 }
 
-///| Checks if a character is a path separator.
+///|
+/// Checks if a character is a path separator.
 /// 
 /// This function identifies path separators used in file systems.
 /// It supports both Unix-style forward slashes and Windows-style backslashes.
@@ -81,7 +83,8 @@ pub fn is_path_separator(c : Char) -> Bool {
   c == '/' || c == '\\'
 }
 
-///| Safely retrieves a character at the specified position in a string.
+///|
+/// Safely retrieves a character at the specified position in a string.
 /// 
 /// This function provides bounds-checked access to string characters,
 /// returning None if the index is out of bounds.
@@ -110,7 +113,8 @@ pub fn get_char(s : String, index : Int) -> Char? {
   }
 }
 
-///| Core glob pattern matching logic with support for wildcards and path-aware matching.
+///|
+/// Core glob pattern matching logic with support for wildcards and path-aware matching.
 /// 
 /// This is the main recursive matching function that handles various glob patterns:
 /// - `**` - Matches any sequence of characters including path separators (cross-directory)
@@ -201,7 +205,8 @@ pub fn match_here(pattern : String, text : String) -> Bool {
   return false
 }
 
-///| Matches a glob pattern against a text string.
+///|
+/// Matches a glob pattern against a text string.
 /// 
 /// This is the main public interface for glob pattern matching.
 /// It supports standard glob wildcards including single and double asterisks.
@@ -232,7 +237,8 @@ pub fn glob(pattern : String, text : String) -> Bool {
   match_here(pattern, text)
 }
 
-///| Checks if a glob pattern matches any path in a collection of file paths.
+///|
+/// Checks if a glob pattern matches any path in a collection of file paths.
 /// 
 /// This function provides a convenient way to test if at least one path
 /// in a collection matches the given glob pattern. It returns as soon as
@@ -261,7 +267,8 @@ pub fn glob_match_any(pattern : String, paths : Array[String]) -> Bool {
   false
 }
 
-///| Filters an array of paths, returning only those that match the glob pattern.
+///|
+/// Filters an array of paths, returning only those that match the glob pattern.
 /// 
 /// This function creates a new array containing only the paths from the input
 /// array that match the specified glob pattern. The original array is not modified.
@@ -290,7 +297,8 @@ pub fn glob_filter(pattern : String, paths : Array[String]) -> Array[String] {
   result
 }
 
-///| Checks if a file path matches any pattern in a collection of glob patterns.
+///|
+/// Checks if a file path matches any pattern in a collection of glob patterns.
 /// 
 /// This function tests a single path against multiple glob patterns,
 /// returning true if the path matches at least one pattern. This is useful
@@ -320,7 +328,8 @@ pub fn match_any_pattern(patterns : Array[String], path : String) -> Bool {
   false
 }
 
-///| Validates whether a string represents a well-formed glob pattern.
+///|
+/// Validates whether a string represents a well-formed glob pattern.
 /// 
 /// This function performs basic syntax validation on glob patterns,
 /// currently focusing on bracket matching for character classes.
@@ -368,7 +377,8 @@ pub fn is_valid_pattern(pattern : String) -> Bool {
   bracket_count == 0
 }
 
-///| Escapes special glob characters in a text string to create a literal pattern.
+///|
+/// Escapes special glob characters in a text string to create a literal pattern.
 /// 
 /// This function converts a regular text string into a glob pattern that will
 /// match the text literally by escaping all special glob characters.

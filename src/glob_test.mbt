@@ -71,7 +71,8 @@ test "glob: pattern validation" {
   assert_eq(is_valid_pattern("test]abc["), false)
 }
 
-///| Escape function tests
+///|
+/// Escape function tests
 test "glob: escape function" {
   assert_eq(escape_glob("test*file"), "test\\*file")
   assert_eq(escape_glob("file?.txt"), "file\\?.txt")
