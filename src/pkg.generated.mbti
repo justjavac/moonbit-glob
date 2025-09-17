@@ -1,0 +1,32 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "justjavac/glob"
+
+// Values
+fn escape_glob(String) -> String
+
+fn get_char(String, Int) -> Char?
+
+fn glob(String, String) -> Bool
+
+fn glob_filter(String, Array[String]) -> Array[String]
+
+fn glob_match_any(String, Array[String]) -> Bool
+
+fn is_path_separator(Char) -> Bool
+
+fn is_valid_pattern(String) -> Bool
+
+fn match_any_pattern(Array[String], String) -> Bool
+
+fn match_char(Char, Char) -> Bool
+
+fn match_here(String, String) -> Bool
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+
