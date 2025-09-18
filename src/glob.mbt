@@ -16,24 +16,24 @@
 /// 
 /// ### Basic Pattern Matching
 /// ```moonbit
-/// assert_eq(glob("*.txt", "readme.txt"), true) // true for text files
-/// assert_eq(glob("file?.log", "file1.log"), true) // matches with single character wildcard
-/// assert_eq(glob("**/*.rs", "src/main.rs"), true) // matches Rust files in any subdirectory
+/// assert_eq(@glob.glob("*.txt", "readme.txt"), true) // true for text files
+/// assert_eq(@glob.glob("file?.log", "file1.log"), true) // matches with single character wildcard
+/// assert_eq(@glob.glob("**/*.rs", "src/main.rs"), true) // matches Rust files in any subdirectory
 /// ```
 /// 
 /// ### Bulk Operations
 /// ```moonbit
 /// let files = ["readme.txt", "main.rs", "test.py"]
-/// assert_eq(glob_filter("*.txt", files), ["readme.txt"]) // filters text files from a list
-/// assert_eq(glob_match_any("*.rs", files), true) // checks if any Rust files exist  
+/// assert_eq(@glob.glob_filter("*.txt", files), ["readme.txt"]) // filters text files from a list
+/// assert_eq(@glob.glob_match_any("*.rs", files), true) // checks if any Rust files exist  
 /// let patterns = ["*.txt", "*.md"]
-/// assert_eq(match_any_pattern(patterns, "file.txt"), true) // checks if file matches any pattern
+/// assert_eq(@glob.match_any_pattern(patterns, "file.txt"), true) // checks if file matches any pattern
 /// ```
 /// 
 /// ### Validation and Escaping
 /// ```moonbit
-/// assert_eq(is_valid_pattern("[abc]*.txt"), true) // validates pattern syntax
-/// assert_eq(escape_glob("file[1].txt"), "file\\[1\\].txt") // escapes special characters for literal matching
+/// assert_eq(@glob.is_valid_pattern("[abc]*.txt"), true) // validates pattern syntax
+/// assert_eq(@glob.escape_glob("file[1].txt"), "file\\[1\\].txt") // escapes special characters for literal matching
 /// ```
 
 ///|
@@ -52,9 +52,9 @@
 /// 
 /// # Examples
 /// ```moonbit
-/// assert_eq(match_char('a', 'a'), true) // true
-/// assert_eq(match_char('?', 'x'), true) // true  
-/// assert_eq(match_char('a', 'b'), false) // false
+/// assert_eq(@glob.match_char('a', 'a'), true) // true
+/// assert_eq(@glob.match_char('?', 'x'), true) // true  
+/// assert_eq(@glob.match_char('a', 'b'), false) // false
 /// ```
 pub fn match_char(pattern : Char, char : Char) -> Bool {
   pattern == '?' || pattern == char
@@ -75,9 +75,9 @@ pub fn match_char(pattern : Char, char : Char) -> Bool {
 /// 
 /// # Examples
 /// ```moonbit
-/// assert_eq(is_path_separator('/'), true) // true
-/// assert_eq(is_path_separator('\\'), true) // true
-/// assert_eq(is_path_separator('a'), false) // false
+/// assert_eq(@glob.is_path_separator('/'), true) // true
+/// assert_eq(@glob.is_path_separator('\\'), true) // true
+/// assert_eq(@glob.is_path_separator('a'), false) // false
 /// ```
 pub fn is_path_separator(c : Char) -> Bool {
   c == '/' || c == '\\'
@@ -99,10 +99,10 @@ pub fn is_path_separator(c : Char) -> Bool {
 /// 
 /// # Examples
 /// ```moonbit
-/// assert_eq(get_char("hello", 0), Some('h')) // Some('h')
-/// assert_eq(get_char("hello", 4), Some('o')) // Some('o')
-/// assert_eq(get_char("hello", 5), None) // None (out of bounds)
-/// assert_eq(get_char("hello", -1), None) // None (negative index)
+/// assert_eq(@glob.get_char("hello", 0), Some('h')) // Some('h')
+/// assert_eq(@glob.get_char("hello", 4), Some('o')) // Some('o')
+/// assert_eq(@glob.get_char("hello", 5), None) // None (out of bounds)
+/// assert_eq(@glob.get_char("hello", -1), None) // None (negative index)
 /// ```
 pub fn get_char(s : String, index : Int) -> Char? {
   if index >= 0 && index < s.length() {
@@ -138,11 +138,11 @@ pub fn get_char(s : String, index : Int) -> Char? {
 /// 
 /// # Examples
 /// ```moonbit
-/// assert_eq(match_here("*.txt", "file.txt"), true) // true
-/// assert_eq(match_here("**/*.txt", "dir/file.txt"), true) // true
-/// assert_eq(match_here("*.txt", "dir/file.txt"), false) // false (single * doesn't cross directories)
+/// assert_eq(@glob.match_here("*.txt", "file.txt"), true) // true
+/// assert_eq(@glob.match_here("**/*.txt", "dir/file.txt"), true) // true
+/// assert_eq(@glob.match_here("*.txt", "dir/file.txt"), false) // false (single * doesn't cross directories)
 /// ```
-pub fn match_here(pattern : String, text : String) -> Bool {
+pub fn match_here(pattern : String, text : String) -> Bool raise {
   let pattern_len = pattern.length()
   let text_len = text.length()
   if pattern_len == 0 {
@@ -153,7 +153,7 @@ pub fn match_here(pattern : String, text : String) -> Bool {
   if pattern.has_prefix("**") {
     // Try to match remaining pattern from each position in text
     for i = 0; i <= text.length(); i = i + 1 {
-      if match_here(pattern.substring(start=2), text.substring(start=i)) {
+      if match_here(pattern[2:].to_string(), text[i:].to_string()) {
         return true
       }
     }
@@ -163,7 +163,7 @@ pub fn match_here(pattern : String, text : String) -> Bool {
   // Handle * single asterisk matching (non-cross-directory matching)
   if pattern.has_prefix("*") {
     // If pattern starts with *, we need special handling
-    let remaining_pattern = pattern.substring(start=1)
+    let remaining_pattern = pattern[1:].to_string()
 
     // If remaining pattern is empty, * matches any content without path separators
     if remaining_pattern.length() == 0 {
@@ -185,7 +185,7 @@ pub fn match_here(pattern : String, text : String) -> Bool {
           _ => ()
         }
       }
-      if match_here(remaining_pattern, text.substring(start=i)) {
+      if match_here(remaining_pattern, text[i:].to_string()) {
         return true
       }
     }
@@ -197,7 +197,7 @@ pub fn match_here(pattern : String, text : String) -> Bool {
     match (get_char(pattern, 0), get_char(text, 0)) {
       (Some(p), Some(t)) =>
         if match_char(p, t) {
-          return match_here(pattern.substring(start=1), text.substring(start=1))
+          return match_here(pattern[1:].to_string(), text[1:].to_string())
         }
       _ => ()
     }
@@ -228,12 +228,12 @@ pub fn match_here(pattern : String, text : String) -> Bool {
 /// 
 /// # Examples
 /// ```moonbit
-/// assert_eq(glob("*.txt", "readme.txt"), true) // true
-/// assert_eq(glob("**/*.md", "docs/api/readme.md"), true) // true
-/// assert_eq(glob("file?.txt", "file1.txt"), true) // true
-/// assert_eq(glob("*.jpg", "image.png"), false) // false
+/// assert_eq(@glob.glob("*.txt", "readme.txt"), true) // true
+/// assert_eq(@glob.glob("**/*.md", "docs/api/readme.md"), true) // true
+/// assert_eq(@glob.glob("file?.txt", "file1.txt"), true) // true
+/// assert_eq(@glob.glob("*.jpg", "image.png"), false) // false
 /// ```
-pub fn glob(pattern : String, text : String) -> Bool {
+pub fn glob(pattern : String, text : String) -> Bool raise {
   match_here(pattern, text)
 }
 
@@ -255,10 +255,10 @@ pub fn glob(pattern : String, text : String) -> Bool {
 /// # Examples
 /// ```moonbit
 /// let files = ["readme.txt", "main.rs", "test.py"]
-/// assert_eq(glob_match_any("*.txt", files), true) // true
-/// assert_eq(glob_match_any("*.js", files), false) // false
+/// assert_eq(@glob.glob_match_any("*.txt", files), true) // true
+/// assert_eq(@glob.glob_match_any("*.js", files), false) // false
 /// ```
-pub fn glob_match_any(pattern : String, paths : Array[String]) -> Bool {
+pub fn glob_match_any(pattern : String, paths : Array[String]) -> Bool raise {
   for path in paths {
     if glob(pattern, path) {
       return true
@@ -284,10 +284,13 @@ pub fn glob_match_any(pattern : String, paths : Array[String]) -> Bool {
 /// # Examples
 /// ```moonbit
 /// let files = ["readme.txt", "main.rs", "test.py", "config.txt"]
-/// assert_eq(glob_filter("*.txt", files), ["readme.txt", "config.txt"]) // ["readme.txt", "config.txt"]
-/// assert_eq(glob_filter("*.js", files), []) // []
+/// assert_eq(@glob.glob_filter("*.txt", files), ["readme.txt", "config.txt"]) // ["readme.txt", "config.txt"]
+/// assert_eq(@glob.glob_filter("*.js", files), []) // []
 /// ```
-pub fn glob_filter(pattern : String, paths : Array[String]) -> Array[String] {
+pub fn glob_filter(
+  pattern : String,
+  paths : Array[String],
+) -> Array[String] raise {
   let result = []
   for path in paths {
     if glob(pattern, path) {
@@ -315,11 +318,11 @@ pub fn glob_filter(pattern : String, paths : Array[String]) -> Array[String] {
 /// # Examples
 /// ```moonbit
 /// let patterns = ["*.txt", "*.md", "readme.*"]
-/// assert_eq(match_any_pattern(patterns, "readme.txt"), true) // true
-/// assert_eq(match_any_pattern(patterns, "readme.md"), true) // true
-/// assert_eq(match_any_pattern(patterns, "main.rs"), false) // false
+/// assert_eq(@glob.match_any_pattern(patterns, "readme.txt"), true) // true
+/// assert_eq(@glob.match_any_pattern(patterns, "readme.md"), true) // true
+/// assert_eq(@glob.match_any_pattern(patterns, "main.rs"), false) // false
 /// ```
-pub fn match_any_pattern(patterns : Array[String], path : String) -> Bool {
+pub fn match_any_pattern(patterns : Array[String], path : String) -> Bool raise {
   for pattern in patterns {
     if glob(pattern, path) {
       return true
@@ -349,10 +352,10 @@ pub fn match_any_pattern(patterns : Array[String], path : String) -> Bool {
 /// 
 /// # Examples
 /// ```moonbit
-/// assert_eq(is_valid_pattern("*.txt"), true) // true
-/// assert_eq(is_valid_pattern("[abc]*.txt"), true) // true
-/// assert_eq(is_valid_pattern("[abc*.txt"), false) // false (unmatched '[')
-/// assert_eq(is_valid_pattern("abc]*.txt"), false) // false (extra ']')
+/// assert_eq(@glob.is_valid_pattern("*.txt"), true) // true
+/// assert_eq(@glob.is_valid_pattern("[abc]*.txt"), true) // true
+/// assert_eq(@glob.is_valid_pattern("[abc*.txt"), false) // false (unmatched '[')
+/// assert_eq(@glob.is_valid_pattern("abc]*.txt"), false) // false (extra ']')
 /// ```
 /// 
 /// # Note
@@ -399,9 +402,9 @@ pub fn is_valid_pattern(pattern : String) -> Bool {
 /// 
 /// # Examples
 /// ```moonbit
-/// assert_eq(escape_glob("file*.txt"), "file\\*.txt") // "file\\*.txt"
-/// assert_eq(escape_glob("test?[1].log"), "test\\?\\[1\\].log") // "test\\?\\[1\\].log"
-/// assert_eq(escape_glob("normal.txt"), "normal.txt") // "normal.txt"
+/// assert_eq(@glob.escape_glob("file*.txt"), "file\\*.txt") // "file\\*.txt"
+/// assert_eq(@glob.escape_glob("test?[1].log"), "test\\?\\[1\\].log") // "test\\?\\[1\\].log"
+/// assert_eq(@glob.escape_glob("normal.txt"), "normal.txt") // "normal.txt"
 /// ```
 /// 
 /// # Use Case
