@@ -1,5 +1,6 @@
 # Glob
 
+[![ci](https://github.com/justjavac/moonbit-glob/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/justjavac/moonbit-glob/actions/workflows/ci.yml)
 [![coverage](https://img.shields.io/codecov/c/github/justjavac/moonbit-glob/main?label=coverage)](https://codecov.io/gh/justjavac/moonbit-glob)
 
 A glob pattern matching library for MoonBit, supporting wildcard pattern
