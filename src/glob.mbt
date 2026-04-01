@@ -194,12 +194,10 @@ pub fn match_here(pattern : String, text : String) -> Bool raise {
 
   // Handle single character matching
   if text_len > 0 && pattern_len > 0 {
-    match (get_char(pattern, 0), get_char(text, 0)) {
-      (Some(p), Some(t)) =>
-        if match_char(p, t) {
-          return match_here(pattern[1:].to_string(), text[1:].to_string())
-        }
-      _ => ()
+    let pattern_char = pattern[0].unsafe_to_char()
+    let text_char = text[0].unsafe_to_char()
+    if match_char(pattern_char, text_char) {
+      return match_here(pattern[1:].to_string(), text[1:].to_string())
     }
   }
   return false
@@ -413,13 +411,12 @@ pub fn is_valid_pattern(pattern : String) -> Bool {
 pub fn escape_glob(text : String) -> String {
   let mut result = ""
   for i = 0; i < text.length(); i = i + 1 {
-    match get_char(text, i) {
-      Some('*') => result = result + "\\*"
-      Some('?') => result = result + "\\?"
-      Some('[') => result = result + "\\["
-      Some(']') => result = result + "\\]"
-      Some(c) => result = result + c.to_string()
-      None => ()
+    match text[i].unsafe_to_char() {
+      '*' => result = result + "\\*"
+      '?' => result = result + "\\?"
+      '[' => result = result + "\\["
+      ']' => result = result + "\\]"
+      c => result = result + c.to_string()
     }
   }
   result
