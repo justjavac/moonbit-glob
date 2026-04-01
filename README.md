@@ -3,7 +3,8 @@
 [![ci](https://github.com/justjavac/moonbit-glob/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/justjavac/moonbit-glob/actions/workflows/ci.yml)
 [![coverage](https://img.shields.io/codecov/c/github/justjavac/moonbit-glob/main?label=coverage)](https://codecov.io/gh/justjavac/moonbit-glob)
 
-A small path-aware glob matcher for MoonBit.
+A glob pattern matching library for MoonBit, supporting wildcard pattern
+matching on file paths and strings.
 
 ## Supported Syntax
 
@@ -18,7 +19,6 @@ specially yet.
 ## Installation
 
 ```bash
-moon update
 moon add justjavac/glob
 ```
 
@@ -43,11 +43,6 @@ assert_eq(
 )
 assert_eq(match_any_pattern(["*.md", "**/*.mbt"], "README.md"), true)
 ```
-
-## Tested Docs
-
-The package also ships with a concise tested README at
-[`README.mbt.md`](./README.mbt.md).
 
 ## License
 
