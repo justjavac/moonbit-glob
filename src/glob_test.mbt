@@ -24,6 +24,7 @@ test "glob: single asterisk wildcard" {
   assert_eq(@glob.glob("a*c", "ac"), true)
   assert_eq(@glob.glob("*", "abc"), true)
   assert_eq(@glob.glob("*", ""), true)
+  assert_eq(@glob.glob("*", "dir/file.txt"), false)
   assert_eq(@glob.glob("a*", "abc"), true)
   assert_eq(@glob.glob("*c", "abc"), true)
 }
@@ -64,6 +65,13 @@ test "glob: utility functions" {
 }
 
 ///|
+test "glob: character helpers" {
+  assert_eq(@glob.get_char("hello", 0), Some('h'))
+  assert_eq(@glob.get_char("hello", 5), None)
+  assert_eq(@glob.get_char("hello", -1), None)
+}
+
+///|
 test "glob: pattern validation" {
   assert_eq(@glob.is_valid_pattern("*.mbt"), true)
   assert_eq(@glob.is_valid_pattern("test[abc]"), true)
@@ -76,5 +84,6 @@ test "glob: pattern validation" {
 test "glob: escape function" {
   assert_eq(@glob.escape_glob("test*file"), "test\\*file")
   assert_eq(@glob.escape_glob("file?.txt"), "file\\?.txt")
+  assert_eq(@glob.escape_glob("file[1].txt"), "file\\[1\\].txt")
   assert_eq(@glob.escape_glob("normal_file"), "normal_file")
 }
