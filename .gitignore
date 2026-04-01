@@ -4,6 +4,6 @@ target/
 .DS_Store
 
 # Coverage-related files
-moonbit-coverage-*.txt
+moonbit_coverage_*.txt
 _coverage
 bisect.coverage

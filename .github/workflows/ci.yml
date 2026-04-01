@@ -2,6 +2,10 @@ name: ci
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   stable:
     strategy:
@@ -53,6 +57,20 @@ jobs:
       - name: Run moon test
         run: |
           moon test
+
+      - name: Generate coverage report
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          moon coverage analyze --target-dir _coverage -p justjavac/glob -- -f cobertura -o _coverage/coverage.xml
+
+      - name: Upload coverage to Codecov
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        uses: codecov/codecov-action@v5
+        with:
+          use_oidc: true
+          files: _coverage/coverage.xml
+          disable_search: true
+          fail_ci_if_error: false
 
       - name: moon build
         run: |

@@ -1,5 +1,7 @@
 # Glob
 
+[![coverage](https://img.shields.io/codecov/c/github/justjavac/moonbit-glob/main?label=coverage)](https://codecov.io/gh/justjavac/moonbit-glob)
+
 A glob pattern matching library for MoonBit, supporting wildcard pattern
 matching on file paths and strings.
 
