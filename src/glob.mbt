@@ -1,108 +1,71 @@
-/// # Glob Pattern Matching Library
-/// 
-/// This module provides comprehensive glob pattern matching functionality for MoonBit.
-/// Glob patterns are widely used for matching file paths and strings using wildcard characters.
-/// 
-/// ## Features
-/// 
-/// - **Basic Wildcards**: Support for `*` (matches any characters) and `?` (matches single character)
-/// - **Directory Traversal**: Support for `**` (matches across directory boundaries)
-/// - **Path-Aware Matching**: Single `*` respects directory boundaries, `**` crosses them
-/// - **Character Classes**: Basic validation for bracket expressions `[abc]` (not fully implemented)
-/// - **Escaping**: Utility to escape special characters for literal matching
-/// - **Bulk Operations**: Functions to match against multiple paths or patterns
-/// 
-/// ## Usage Examples
-/// 
-/// ### Basic Pattern Matching
-/// ```moonbit
-/// assert_eq(@glob.glob("*.txt", "readme.txt"), true) // true for text files
-/// assert_eq(@glob.glob("file?.log", "file1.log"), true) // matches with single character wildcard
-/// assert_eq(@glob.glob("**/*.rs", "src/main.rs"), true) // matches Rust files in any subdirectory
-/// ```
-/// 
-/// ### Bulk Operations
-/// ```moonbit
-/// let files = ["readme.txt", "main.rs", "test.py"]
-/// assert_eq(@glob.glob_filter("*.txt", files), ["readme.txt"]) // filters text files from a list
-/// assert_eq(@glob.glob_match_any("*.rs", files), true) // checks if any Rust files exist  
-/// let patterns = ["*.txt", "*.md"]
-/// assert_eq(@glob.match_any_pattern(patterns, "file.txt"), true) // checks if file matches any pattern
-/// ```
-/// 
-/// ### Validation and Escaping
-/// ```moonbit
-/// assert_eq(@glob.is_valid_pattern("[abc]*.txt"), true) // validates pattern syntax
-/// assert_eq(@glob.escape_glob("file[1].txt"), "file\\[1\\].txt") // escapes special characters for literal matching
+/// # Glob Pattern Matching
+///
+/// `@glob` provides a small, path-aware glob matcher for MoonBit.
+/// The matcher currently understands:
+///
+/// - `?` for exactly one character
+/// - `*` for any characters inside one path segment
+/// - `**` for any characters across path separators
+///
+/// `is_valid_pattern` also checks balanced brackets such as `[abc]`, but
+/// character classes are not interpreted by `glob` yet.
+///
+/// # Example
+/// ```mbt check
+/// test {
+///   assert_eq(@glob.glob("*.txt", "notes.txt"), true)
+///   assert_eq(@glob.glob("src/**/*.mbt", "src/lib/main.mbt"), true)
+///   assert_eq(@glob.glob("src/*.mbt", "src/lib/main.mbt"), false)
+/// }
 /// ```
 
 ///|
-/// Basic character matching function that supports the '?' wildcard character.
-/// 
-/// This function compares a pattern character with a text character.
-/// The '?' character in the pattern acts as a wildcard that matches any single character.
-/// 
-/// # Arguments
-/// * `pattern` - The pattern character to match against
-/// * `char` - The text character to be matched
-/// 
-/// # Returns
-/// * `true` if the pattern character matches the text character or if pattern is '?'
-/// * `false` otherwise
-/// 
-/// # Examples
-/// ```moonbit nocheck
-/// assert_eq(@glob.match_char('a', 'a'), true) // true
-/// assert_eq(@glob.match_char('?', 'x'), true) // true  
-/// assert_eq(@glob.match_char('a', 'b'), false) // false
+/// Match one pattern character against one text character.
+///
+/// `?` matches any single character. All other characters must be equal.
+///
+/// # Example
+/// ```mbt check
+/// test {
+///   assert_eq(@glob.match_char('a', 'a'), true)
+///   assert_eq(@glob.match_char('?', 'x'), true)
+///   assert_eq(@glob.match_char('a', 'b'), false)
+/// }
 /// ```
 pub fn match_char(pattern : Char, char : Char) -> Bool {
   pattern == '?' || pattern == char
 }
 
 ///|
-/// Checks if a character is a path separator.
-/// 
-/// This function identifies path separators used in file systems.
-/// It supports both Unix-style forward slashes and Windows-style backslashes.
-/// 
-/// # Arguments
-/// * `c` - The character to check
-/// 
-/// # Returns
-/// * `true` if the character is '/' or '\'
-/// * `false` otherwise
-/// 
-/// # Examples
-/// ```moonbit nocheck
-/// assert_eq(@glob.is_path_separator('/'), true) // true
-/// assert_eq(@glob.is_path_separator('\\'), true) // true
-/// assert_eq(@glob.is_path_separator('a'), false) // false
+/// Return whether `c` is a supported path separator.
+///
+/// Both Unix (`/`) and Windows (`\`) separators are recognized.
+///
+/// # Example
+/// ```mbt check
+/// test {
+///   assert_eq(@glob.is_path_separator('/'), true)
+///   assert_eq(@glob.is_path_separator('\\'), true)
+///   assert_eq(@glob.is_path_separator('a'), false)
+/// }
 /// ```
 pub fn is_path_separator(c : Char) -> Bool {
   c == '/' || c == '\\'
 }
 
 ///|
-/// Safely retrieves a character at the specified position in a string.
-/// 
-/// This function provides bounds-checked access to string characters,
-/// returning None if the index is out of bounds.
-/// 
-/// # Arguments
-/// * `s` - The input string
-/// * `index` - The zero-based index of the character to retrieve
-/// 
-/// # Returns
-/// * `Some(char)` if the index is valid and within bounds
-/// * `None` if the index is negative or >= string length
-/// 
-/// # Examples
-/// ```moonbit nocheck
-/// assert_eq(@glob.get_char("hello", 0), Some('h')) // Some('h')
-/// assert_eq(@glob.get_char("hello", 4), Some('o')) // Some('o')
-/// assert_eq(@glob.get_char("hello", 5), None) // None (out of bounds)
-/// assert_eq(@glob.get_char("hello", -1), None) // None (negative index)
+/// Safely read one character from `s` by zero-based index.
+///
+/// This helper returns `None` instead of raising when the index is out of
+/// bounds.
+///
+/// # Example
+/// ```mbt check
+/// test {
+///   assert_eq(@glob.get_char("moon", 0), Some('m'))
+///   assert_eq(@glob.get_char("moon", 3), Some('n'))
+///   assert_eq(@glob.get_char("moon", 4), None)
+/// }
 /// ```
 pub fn get_char(s : String, index : Int) -> Char? {
   if index >= 0 && index < s.length() {
@@ -114,33 +77,24 @@ pub fn get_char(s : String, index : Int) -> Char? {
 }
 
 ///|
-/// Core glob pattern matching logic with support for wildcards and path-aware matching.
-/// 
-/// This is the main recursive matching function that handles various glob patterns:
-/// - `**` - Matches any sequence of characters including path separators (cross-directory)
-/// - `*` - Matches any sequence of characters except path separators (single directory)
-/// - `?` - Matches any single character
-/// - Literal characters - Match themselves exactly
-/// 
-/// # Arguments
-/// * `pattern` - The glob pattern to match against
-/// * `text` - The text string to be matched
-/// 
-/// # Returns
-/// * `true` if the pattern matches the text
-/// * `false` otherwise
-/// 
-/// # Pattern Behavior
-/// - Empty pattern only matches empty text
-/// - `**` can match across directory boundaries
-/// - `*` stops at path separators ('/' or '\')
-/// - Single character matching supports '?' wildcard
-/// 
-/// # Examples
-/// ```moonbit nocheck
-/// assert_eq(@glob.match_here("*.txt", "file.txt"), true) // true
-/// assert_eq(@glob.match_here("**/*.txt", "dir/file.txt"), true) // true
-/// assert_eq(@glob.match_here("*.txt", "dir/file.txt"), false) // false (single * doesn't cross directories)
+/// Match `pattern` against `text` using the package's recursive glob rules.
+///
+/// This is the low-level matcher that powers `glob`. Most callers should use
+/// `glob` directly.
+///
+/// Matching rules:
+///
+/// - `**` can consume any suffix, including path separators
+/// - `*` can consume any suffix until the next path separator
+/// - `?` matches exactly one character
+/// - every other character matches literally
+///
+/// # Example
+/// ```mbt check
+/// test {
+///   assert_eq(@glob.match_here("**/*.mbt", "src/lib/main.mbt"), true)
+///   assert_eq(@glob.match_here("*.mbt", "src/lib/main.mbt"), false)
+/// }
 /// ```
 pub fn match_here(pattern : String, text : String) -> Bool raise {
   let pattern_len = pattern.length()
@@ -149,9 +103,8 @@ pub fn match_here(pattern : String, text : String) -> Bool raise {
     return text_len == 0
   }
 
-  // Handle ** double asterisk matching (cross-directory matching)
+  // `**` can span across directory boundaries.
   if pattern.has_prefix("**") {
-    // Try to match remaining pattern from each position in text
     for i = 0; i <= text.length(); i = i + 1 {
       if match_here(pattern[2:].to_string(), text[i:].to_string()) {
         return true
@@ -160,12 +113,10 @@ pub fn match_here(pattern : String, text : String) -> Bool raise {
     return false
   }
 
-  // Handle * single asterisk matching (non-cross-directory matching)
+  // `*` stays within a single path segment.
   if pattern.has_prefix("*") {
-    // If pattern starts with *, we need special handling
     let remaining_pattern = pattern[1:].to_string()
 
-    // If remaining pattern is empty, * matches any content without path separators
     if remaining_pattern.length() == 0 {
       for i = 0; i < text.length(); i = i + 1 {
         match get_char(text, i) {
@@ -176,9 +127,7 @@ pub fn match_here(pattern : String, text : String) -> Bool raise {
       return true
     }
 
-    // Try to match, but don't cross path separators
     for i = 0; i <= text.length(); i = i + 1 {
-      // Check if path separator is encountered (single asterisk should not cross directories)
       if i < text.length() {
         match get_char(text, i) {
           Some(c) if is_path_separator(c) => break
@@ -192,7 +141,7 @@ pub fn match_here(pattern : String, text : String) -> Bool raise {
     return false
   }
 
-  // Handle single character matching
+  // Match one character literally or through `?`.
   if text_len > 0 && pattern_len > 0 {
     let pattern_char = pattern[0].unsafe_to_char()
     let text_char = text[0].unsafe_to_char()
@@ -200,61 +149,47 @@ pub fn match_here(pattern : String, text : String) -> Bool raise {
       return match_here(pattern[1:].to_string(), text[1:].to_string())
     }
   }
-  return false
+  false
 }
 
 ///|
-/// Matches a glob pattern against a text string.
-/// 
-/// This is the main public interface for glob pattern matching.
-/// It supports standard glob wildcards including single and double asterisks.
-/// 
-/// # Arguments
-/// * `pattern` - The glob pattern containing wildcards
-/// * `text` - The text string to match against the pattern
-/// 
-/// # Returns
-/// * `true` if the pattern matches the text
-/// * `false` otherwise
-/// 
-/// # Supported Patterns
-/// - `*` - Matches any characters except path separators
-/// - `**` - Matches any characters including path separators
-/// - `?` - Matches exactly one character
-/// - `[abc]` - Character class (validation only, not implemented)
-/// - Literal characters match themselves
-/// 
-/// # Examples
-/// ```moonbit nocheck
-/// assert_eq(@glob.glob("*.txt", "readme.txt"), true) // true
-/// assert_eq(@glob.glob("**/*.md", "docs/api/readme.md"), true) // true
-/// assert_eq(@glob.glob("file?.txt", "file1.txt"), true) // true
-/// assert_eq(@glob.glob("*.jpg", "image.png"), false) // false
+/// Match one glob `pattern` against one `text` path.
+///
+/// This is the main public entry point for the package.
+///
+/// Supported syntax:
+///
+/// - `*` matches zero or more non-separator characters
+/// - `**` matches zero or more characters, including separators
+/// - `?` matches exactly one character
+///
+/// Bracket expressions such as `[abc]` are validated by
+/// `is_valid_pattern`, but they are not matched specially yet.
+///
+/// # Example
+/// ```mbt check
+/// test {
+///   assert_eq(@glob.glob("file?.log", "file1.log"), true)
+///   assert_eq(@glob.glob("**/*.md", "docs/api/readme.md"), true)
+///   assert_eq(@glob.glob("*.jpg", "images/logo.png"), false)
+/// }
 /// ```
 pub fn glob(pattern : String, text : String) -> Bool raise {
   match_here(pattern, text)
 }
 
 ///|
-/// Checks if a glob pattern matches any path in a collection of file paths.
-/// 
-/// This function provides a convenient way to test if at least one path
-/// in a collection matches the given glob pattern. It returns as soon as
-/// the first match is found, making it efficient for large collections.
-/// 
-/// # Arguments
-/// * `pattern` - The glob pattern to match against
-/// * `paths` - An array of file paths to test
-/// 
-/// # Returns
-/// * `true` if at least one path matches the pattern
-/// * `false` if no paths match the pattern or if the array is empty
-/// 
-/// # Examples
-/// ```moonbit nocheck
-/// let files = ["readme.txt", "main.rs", "test.py"]
-/// assert_eq(@glob.glob_match_any("*.txt", files), true) // true
-/// assert_eq(@glob.glob_match_any("*.js", files), false) // false
+/// Return whether any path in `paths` matches `pattern`.
+///
+/// The function stops at the first match.
+///
+/// # Example
+/// ```mbt check
+/// test {
+///   let files = ["README.md", "src/main.mbt", "test/main_test.mbt"]
+///   assert_eq(@glob.glob_match_any("**/*.mbt", files), true)
+///   assert_eq(@glob.glob_match_any("**/*.rs", files), false)
+/// }
 /// ```
 pub fn glob_match_any(pattern : String, paths : Array[String]) -> Bool raise {
   for path in paths {
@@ -266,24 +201,17 @@ pub fn glob_match_any(pattern : String, paths : Array[String]) -> Bool raise {
 }
 
 ///|
-/// Filters an array of paths, returning only those that match the glob pattern.
-/// 
-/// This function creates a new array containing only the paths from the input
-/// array that match the specified glob pattern. The original array is not modified.
-/// 
-/// # Arguments
-/// * `pattern` - The glob pattern to filter by
-/// * `paths` - An array of file paths to filter
-/// 
-/// # Returns
-/// * A new array containing only the paths that match the pattern
-/// * An empty array if no paths match or if the input array is empty
-/// 
-/// # Examples
-/// ```moonbit nocheck
-/// let files = ["readme.txt", "main.rs", "test.py", "config.txt"]
-/// assert_eq(@glob.glob_filter("*.txt", files), ["readme.txt", "config.txt"]) // ["readme.txt", "config.txt"]
-/// assert_eq(@glob.glob_filter("*.js", files), []) // []
+/// Return a new array containing only the paths that match `pattern`.
+///
+/// The original array is left unchanged.
+///
+/// # Example
+/// ```mbt check
+/// test {
+///   let files = ["README.md", "src/main.mbt", "src/lib/util.mbt"]
+///   assert_eq(@glob.glob_filter("src/*.mbt", files), ["src/main.mbt"])
+///   assert_eq(@glob.glob_filter("src/**/*.mbt", files), ["src/lib/util.mbt"])
+/// }
 /// ```
 pub fn glob_filter(
   pattern : String,
@@ -299,26 +227,18 @@ pub fn glob_filter(
 }
 
 ///|
-/// Checks if a file path matches any pattern in a collection of glob patterns.
-/// 
-/// This function tests a single path against multiple glob patterns,
-/// returning true if the path matches at least one pattern. This is useful
-/// for implementing include/exclude rules or multiple pattern matching.
-/// 
-/// # Arguments
-/// * `patterns` - An array of glob patterns to test against
-/// * `path` - The file path to test
-/// 
-/// # Returns
-/// * `true` if the path matches at least one pattern
-/// * `false` if the path matches no patterns or if the patterns array is empty
-/// 
-/// # Examples
-/// ```moonbit nocheck
-/// let patterns = ["*.txt", "*.md", "readme.*"]
-/// assert_eq(@glob.match_any_pattern(patterns, "readme.txt"), true) // true
-/// assert_eq(@glob.match_any_pattern(patterns, "readme.md"), true) // true
-/// assert_eq(@glob.match_any_pattern(patterns, "main.rs"), false) // false
+/// Return whether `path` matches at least one glob in `patterns`.
+///
+/// This is useful when several include rules should be checked together.
+///
+/// # Example
+/// ```mbt check
+/// test {
+///   let patterns = ["*.md", "**/*.mbt"]
+///   assert_eq(@glob.match_any_pattern(patterns, "README.md"), true)
+///   assert_eq(@glob.match_any_pattern(patterns, "src/main.mbt"), true)
+///   assert_eq(@glob.match_any_pattern(patterns, "package.json"), false)
+/// }
 /// ```
 pub fn match_any_pattern(patterns : Array[String], path : String) -> Bool raise {
   for pattern in patterns {
@@ -330,44 +250,28 @@ pub fn match_any_pattern(patterns : Array[String], path : String) -> Bool raise 
 }
 
 ///|
-/// Validates whether a string represents a well-formed glob pattern.
-/// 
-/// This function performs basic syntax validation on glob patterns,
-/// currently focusing on bracket matching for character classes.
-/// It ensures that all opening brackets '[' have corresponding closing brackets ']'.
-/// 
-/// # Arguments
-/// * `pattern` - The glob pattern string to validate
-/// 
-/// # Returns
-/// * `true` if the pattern appears to be syntactically valid
-/// * `false` if the pattern has syntax errors (e.g., unmatched brackets)
-/// 
-/// # Validation Rules
-/// - All '[' characters must have matching ']' characters
-/// - No extra ']' characters without corresponding '['
-/// - Brackets must be properly nested
-/// 
-/// # Examples
-/// ```moonbit nocheck
-/// assert_eq(@glob.is_valid_pattern("*.txt"), true) // true
-/// assert_eq(@glob.is_valid_pattern("[abc]*.txt"), true) // true
-/// assert_eq(@glob.is_valid_pattern("[abc*.txt"), false) // false (unmatched '[')
-/// assert_eq(@glob.is_valid_pattern("abc]*.txt"), false) // false (extra ']')
+/// Check whether `pattern` is structurally valid.
+///
+/// The current validation is intentionally small in scope: it only checks that
+/// `[` and `]` are balanced. It does not validate or implement the full glob
+/// grammar.
+///
+/// # Example
+/// ```mbt check
+/// test {
+///   assert_eq(@glob.is_valid_pattern("*.mbt"), true)
+///   assert_eq(@glob.is_valid_pattern("[abc]*.txt"), true)
+///   assert_eq(@glob.is_valid_pattern("[abc*.txt"), false)
+///   assert_eq(@glob.is_valid_pattern("abc]*.txt"), false)
+/// }
 /// ```
-/// 
-/// # Note
-/// This is a basic validation that only checks bracket matching.
-/// More sophisticated pattern validation could be added in the future.
 pub fn is_valid_pattern(pattern : String) -> Bool {
-  // Simple validation: check for unmatched brackets, etc.
   let mut bracket_count = 0
   for i = 0; i < pattern.length(); i = i + 1 {
     match get_char(pattern, i) {
       Some('[') => bracket_count = bracket_count + 1
       Some(']') => {
         bracket_count = bracket_count - 1
-        // If an extra closing bracket is encountered, immediately return `false`.
         if bracket_count < 0 {
           return false
         }
@@ -379,35 +283,20 @@ pub fn is_valid_pattern(pattern : String) -> Bool {
 }
 
 ///|
-/// Escapes special glob characters in a text string to create a literal pattern.
-/// 
-/// This function converts a regular text string into a glob pattern that will
-/// match the text literally by escaping all special glob characters.
-/// This is useful when you want to match a filename that contains characters
-/// that would normally be interpreted as wildcards.
-/// 
-/// # Arguments
-/// * `text` - The input text string to escape
-/// 
-/// # Returns
-/// * A new string with all special glob characters escaped with backslashes
-/// 
-/// # Escaped Characters
-/// - `*` becomes `\*`
-/// - `?` becomes `\?`
-/// - `[` becomes `\[`
-/// - `]` becomes `\]`
-/// 
-/// # Examples
-/// ```moonbit nocheck
-/// assert_eq(@glob.escape_glob("file*.txt"), "file\\*.txt") // "file\\*.txt"
-/// assert_eq(@glob.escape_glob("test?[1].log"), "test\\?\\[1\\].log") // "test\\?\\[1\\].log"
-/// assert_eq(@glob.escape_glob("normal.txt"), "normal.txt") // "normal.txt"
+/// Prefix common glob metacharacters in `text` with backslashes.
+///
+/// This helper is useful when you want a readable escaped representation of a
+/// pattern fragment or when interoperating with tools that treat backslashes as
+/// escapes. The current matcher does not interpret backslashes specially.
+///
+/// # Example
+/// ```mbt check
+/// test {
+///   assert_eq(@glob.escape_glob("file*.txt"), "file\\*.txt")
+///   assert_eq(@glob.escape_glob("test?[1].log"), "test\\?\\[1\\].log")
+///   assert_eq(@glob.escape_glob("plain.txt"), "plain.txt")
+/// }
 /// ```
-/// 
-/// # Use Case
-/// Use this function when you have a filename that contains glob metacharacters
-/// but you want to match it literally rather than as a pattern.
 pub fn escape_glob(text : String) -> String {
   let mut result = ""
   for i = 0; i < text.length(); i = i + 1 {

@@ -3,21 +3,17 @@
 [![ci](https://github.com/justjavac/moonbit-glob/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/justjavac/moonbit-glob/actions/workflows/ci.yml)
 [![coverage](https://img.shields.io/codecov/c/github/justjavac/moonbit-glob/main?label=coverage)](https://codecov.io/gh/justjavac/moonbit-glob)
 
-A glob pattern matching library for MoonBit, supporting wildcard pattern
-matching on file paths and strings.
+A small path-aware glob matcher for MoonBit.
 
-## Features
+## Supported Syntax
 
-- **Basic Wildcards**: Support for `*` (matches any characters) and `?` (matches
-  single character)
-- **Directory Traversal**: Support for `**` (matches across directory
-  boundaries)
-- **Path-Aware Matching**: Single `*` respects directory boundaries, `**`
-  crosses them
-- **Character Classes**: Basic validation for bracket expressions `[abc]`
-  (validation only)
-- **Escaping**: Utility to escape special characters for literal matching
-- **Bulk Operations**: Functions to match against multiple paths or patterns
+- `?` matches exactly one character
+- `*` matches inside a single path segment
+- `**` matches across path separators
+- `is_valid_pattern` checks whether `[` and `]` are balanced
+
+Bracket expressions such as `[abc]` are validated only; they are not matched
+specially yet.
 
 ## Installation
 
@@ -29,28 +25,29 @@ moon add justjavac/glob
 ## Usage
 
 ```moonbit
-// Match text files
-let result = glob("*.txt", "readme.txt")
-assert_eq(result, true)
-
-// Single character wildcard
-let result = glob("file?.log", "file1.log")
-assert_eq(result, true)
-
-// Cross-directory matching
-let result = glob("**/*.mbt", "src/main.mbt")
-assert_eq(result, true)
+assert_eq(glob("*.txt", "notes.txt"), true)
+assert_eq(glob("src/*.mbt", "src/main.mbt"), true)
+assert_eq(glob("src/*.mbt", "src/lib/main.mbt"), false)
+assert_eq(glob("src/**/*.mbt", "src/lib/main.mbt"), true)
 ```
 
-## Pattern Syntax
+## Collection Helpers
 
-| Pattern | Description                                        | Example         | Matches                     | Doesn't Match            |
-| ------- | -------------------------------------------------- | --------------- | --------------------------- | ------------------------ |
-| `*`     | Matches any characters (except path separators)    | `*.txt`         | `file.txt`, `readme.txt`    | `dir/file.txt`           |
-| `**`    | Matches any characters (including path separators) | `**/*.txt`      | `dir/file.txt`, `a/b/c.txt` | `file.py`                |
-| `?`     | Matches exactly one character                      | `file?.txt`     | `file1.txt`, `fileA.txt`    | `file.txt`, `file12.txt` |
-| `[abc]` | Character class (validation only)                  | `file[123].txt` | _validated syntax only_     | _not implemented_        |
-| Literal | Matches exact characters                           | `readme.txt`    | `readme.txt`                | `README.txt`             |
+```moonbit
+let files = ["README.md", "src/main.mbt", "src/lib/util.mbt"]
+
+assert_eq(glob_match_any("src/**", files), true)
+assert_eq(
+  glob_filter("src/**/*.mbt", files),
+  ["src/lib/util.mbt"],
+)
+assert_eq(match_any_pattern(["*.md", "**/*.mbt"], "README.md"), true)
+```
+
+## Tested Docs
+
+The package also ships with a concise tested README at
+[`README.mbt.md`](./README.mbt.md).
 
 ## License
 
