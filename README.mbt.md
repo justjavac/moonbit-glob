@@ -1,5 +1,8 @@
 # Glob
 
+[![ci](https://github.com/justjavac/moonbit-glob/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/justjavac/moonbit-glob/actions/workflows/ci.yml)
+[![coverage](https://img.shields.io/codecov/c/github/justjavac/moonbit-glob/main?label=coverage)](https://codecov.io/gh/justjavac/moonbit-glob)
+
 A small path-aware glob matcher for MoonBit.
 
 It supports `?`, `*`, and `**`:
@@ -10,13 +13,6 @@ It supports `?`, `*`, and `**`:
 
 Bracket expressions such as `[abc]` are only validated by
 `@glob.is_valid_pattern`; they are not matched specially yet.
-
-## Install
-
-```mbt nocheck
-moon update
-moon add justjavac/glob
-```
 
 ## Quick Start
 
