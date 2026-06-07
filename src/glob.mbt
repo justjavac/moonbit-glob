@@ -62,9 +62,9 @@ pub fn is_path_separator(c : Char) -> Bool {
 /// # Example
 /// ```mbt check
 /// test {
-///   assert_eq(@glob.get_char("moon", 0), Some('m'))
-///   assert_eq(@glob.get_char("moon", 3), Some('n'))
-///   assert_eq(@glob.get_char("moon", 4), None)
+///   assert_true(@glob.get_char("moon", 0) == Some('m'))
+///   assert_true(@glob.get_char("moon", 3) == Some('n'))
+///   assert_true(@glob.get_char("moon", 4) == None)
 /// }
 /// ```
 pub fn get_char(s : String, index : Int) -> Char? {
@@ -106,7 +106,7 @@ pub fn match_here(pattern : String, text : String) -> Bool raise {
   // `**` can span across directory boundaries.
   if pattern.has_prefix("**") {
     for i = 0; i <= text.length(); i = i + 1 {
-      if match_here(pattern[2:].to_string(), text[i:].to_string()) {
+      if match_here(pattern[2:].to_owned(), text[i:].to_owned()) {
         return true
       }
     }
@@ -115,7 +115,7 @@ pub fn match_here(pattern : String, text : String) -> Bool raise {
 
   // `*` stays within a single path segment.
   if pattern.has_prefix("*") {
-    let remaining_pattern = pattern[1:].to_string()
+    let remaining_pattern = pattern[1:].to_owned()
 
     if remaining_pattern.length() == 0 {
       for i = 0; i < text.length(); i = i + 1 {
@@ -134,7 +134,7 @@ pub fn match_here(pattern : String, text : String) -> Bool raise {
           _ => ()
         }
       }
-      if match_here(remaining_pattern, text[i:].to_string()) {
+      if match_here(remaining_pattern, text[i:].to_owned()) {
         return true
       }
     }
@@ -146,7 +146,7 @@ pub fn match_here(pattern : String, text : String) -> Bool raise {
     let pattern_char = pattern[0].unsafe_to_char()
     let text_char = text[0].unsafe_to_char()
     if match_char(pattern_char, text_char) {
-      return match_here(pattern[1:].to_string(), text[1:].to_string())
+      return match_here(pattern[1:].to_owned(), text[1:].to_owned())
     }
   }
   false
@@ -209,8 +209,8 @@ pub fn glob_match_any(pattern : String, paths : Array[String]) -> Bool raise {
 /// ```mbt check
 /// test {
 ///   let files = ["README.md", "src/main.mbt", "src/lib/util.mbt"]
-///   assert_eq(@glob.glob_filter("src/*.mbt", files), ["src/main.mbt"])
-///   assert_eq(@glob.glob_filter("src/**/*.mbt", files), ["src/lib/util.mbt"])
+///   assert_true(@glob.glob_filter("src/*.mbt", files) == ["src/main.mbt"])
+///   assert_true(@glob.glob_filter("src/**/*.mbt", files) == ["src/lib/util.mbt"])
 /// }
 /// ```
 pub fn glob_filter(

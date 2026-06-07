@@ -1,0 +1,17 @@
+name = "justjavac/glob"
+
+version = "0.1.7"
+
+readme = "README.mbt.md"
+
+repository = "https://github.com/justjavac/moonbit-glob"
+
+license = "MIT"
+
+keywords = [ "glob", "path", "wildcard", "pattern", "matching" ]
+
+description = "A glob library for MoonBit, supporting wildcard pattern matching on file paths."
+
+options(
+  source: "src",
+)

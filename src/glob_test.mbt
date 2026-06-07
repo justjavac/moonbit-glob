@@ -66,9 +66,9 @@ test "glob: utility functions" {
 
 ///|
 test "glob: character helpers" {
-  assert_eq(@glob.get_char("hello", 0), Some('h'))
-  assert_eq(@glob.get_char("hello", 5), None)
-  assert_eq(@glob.get_char("hello", -1), None)
+  assert_true(@glob.get_char("hello", 0) == Some('h'))
+  assert_true(@glob.get_char("hello", 5) == None)
+  assert_true(@glob.get_char("hello", -1) == None)
 }
 
 ///|
