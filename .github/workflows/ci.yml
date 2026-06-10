@@ -37,10 +37,9 @@ jobs:
         run: |
           moon version --all
 
-      - name: moon install
+      - name: moon update
         run: |
           moon update
-          moon install
 
       - name: moon info
         run: |
@@ -48,7 +47,7 @@ jobs:
           git diff --exit-code
 
       - name: moon check
-        run: moon check --deny-warn
+        run: moon check --target all --warn-list +73 --deny-warn
 
       - name: format check
         run: |
@@ -56,11 +55,12 @@ jobs:
 
       - name: Run moon test
         run: |
-          moon test
+          moon test --target all
 
       - name: Generate coverage report
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
+          moon test --target native --enable-coverage --target-dir _coverage
           moon coverage analyze --target-dir _coverage -p justjavac/glob -- -f cobertura -o _coverage/coverage.xml
 
       - name: Upload coverage to Codecov
@@ -107,10 +107,9 @@ jobs:
         run: |
           moon version --all
 
-      - name: moon install
+      - name: moon update
         run: |
           moon update
-          moon install
 
       - name: moon info
         run: |
@@ -118,7 +117,7 @@ jobs:
           git diff --exit-code
 
       - name: moon check
-        run: moon check --deny-warn
+        run: moon check --target all --warn-list +73 --deny-warn
 
       - name: format check
         run: |
@@ -126,7 +125,7 @@ jobs:
 
       - name: Run moon test
         run: |
-          moon test
+          moon test --target all
 
       - name: moon build
         run: |
