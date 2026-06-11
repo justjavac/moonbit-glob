@@ -68,12 +68,68 @@ pub fn is_path_separator(c : Char) -> Bool {
 /// }
 /// ```
 pub fn get_char(s : String, index : Int) -> Char? {
-  if index >= 0 && index < s.length() {
-    let code = s[index]
-    Some(code.unsafe_to_char())
+  let chars = s.to_array()
+  if index >= 0 && index < chars.length() {
+    Some(chars[index])
   } else {
     None
   }
+}
+
+///|
+/// Match `pattern` and `text` starting at character offsets.
+fn match_chars(
+  pattern : Array[Char],
+  pattern_index : Int,
+  text : Array[Char],
+  text_index : Int,
+) -> Bool {
+  let pattern_len = pattern.length()
+  let text_len = text.length()
+  if pattern_index >= pattern_len {
+    return text_index >= text_len
+  }
+
+  if pattern[pattern_index] == '*' &&
+    pattern_index + 1 < pattern_len &&
+    pattern[pattern_index + 1] == '*' {
+    for i in text_index..<=text_len {
+      if match_chars(pattern, pattern_index + 2, text, i) {
+        return true
+      }
+    }
+    return false
+  }
+
+  if pattern[pattern_index] == '*' {
+    let next_pattern = pattern_index + 1
+    if next_pattern >= pattern_len {
+      for i in text_index..<text_len {
+        if is_path_separator(text[i]) {
+          return false
+        }
+      }
+      return true
+    }
+
+    let mut i = text_index
+    while i <= text_len {
+      if match_chars(pattern, next_pattern, text, i) {
+        return true
+      }
+      if i < text_len && is_path_separator(text[i]) {
+        break
+      }
+      i = i + 1
+    }
+    return false
+  }
+
+  if text_index < text_len &&
+    match_char(pattern[pattern_index], text[text_index]) {
+    return match_chars(pattern, pattern_index + 1, text, text_index + 1)
+  }
+  false
 }
 
 ///|
@@ -96,60 +152,8 @@ pub fn get_char(s : String, index : Int) -> Char? {
 ///   assert_eq(@glob.match_here("*.mbt", "src/lib/main.mbt"), false)
 /// }
 /// ```
-pub fn match_here(pattern : String, text : String) -> Bool raise {
-  let pattern_len = pattern.length()
-  let text_len = text.length()
-  if pattern_len == 0 {
-    return text_len == 0
-  }
-
-  // `**` can span across directory boundaries.
-  if pattern.has_prefix("**") {
-    for i = 0; i <= text.length(); i = i + 1 {
-      if match_here(pattern[2:].to_owned(), text[i:].to_owned()) {
-        return true
-      }
-    }
-    return false
-  }
-
-  // `*` stays within a single path segment.
-  if pattern.has_prefix("*") {
-    let remaining_pattern = pattern[1:].to_owned()
-
-    if remaining_pattern.length() == 0 {
-      for i = 0; i < text.length(); i = i + 1 {
-        match get_char(text, i) {
-          Some(c) if is_path_separator(c) => return false
-          _ => ()
-        }
-      }
-      return true
-    }
-
-    for i = 0; i <= text.length(); i = i + 1 {
-      if i < text.length() {
-        match get_char(text, i) {
-          Some(c) if is_path_separator(c) => break
-          _ => ()
-        }
-      }
-      if match_here(remaining_pattern, text[i:].to_owned()) {
-        return true
-      }
-    }
-    return false
-  }
-
-  // Match one character literally or through `?`.
-  if text_len > 0 && pattern_len > 0 {
-    let pattern_char = pattern[0].unsafe_to_char()
-    let text_char = text[0].unsafe_to_char()
-    if match_char(pattern_char, text_char) {
-      return match_here(pattern[1:].to_owned(), text[1:].to_owned())
-    }
-  }
-  false
+pub fn match_here(pattern : String, text : String) -> Bool {
+  match_chars(pattern.to_array(), 0, text.to_array(), 0)
 }
 
 ///|
@@ -174,7 +178,7 @@ pub fn match_here(pattern : String, text : String) -> Bool raise {
 ///   assert_eq(@glob.glob("*.jpg", "images/logo.png"), false)
 /// }
 /// ```
-pub fn glob(pattern : String, text : String) -> Bool raise {
+pub fn glob(pattern : String, text : String) -> Bool {
   match_here(pattern, text)
 }
 
@@ -191,7 +195,7 @@ pub fn glob(pattern : String, text : String) -> Bool raise {
 ///   assert_eq(@glob.glob_match_any("**/*.rs", files), false)
 /// }
 /// ```
-pub fn glob_match_any(pattern : String, paths : Array[String]) -> Bool raise {
+pub fn glob_match_any(pattern : String, paths : Array[String]) -> Bool {
   for path in paths {
     if glob(pattern, path) {
       return true
@@ -213,10 +217,7 @@ pub fn glob_match_any(pattern : String, paths : Array[String]) -> Bool raise {
 ///   assert_true(@glob.glob_filter("src/**/*.mbt", files) == ["src/lib/util.mbt"])
 /// }
 /// ```
-pub fn glob_filter(
-  pattern : String,
-  paths : Array[String],
-) -> Array[String] raise {
+pub fn glob_filter(pattern : String, paths : Array[String]) -> Array[String] {
   let result = []
   for path in paths {
     if glob(pattern, path) {
@@ -240,7 +241,7 @@ pub fn glob_filter(
 ///   assert_eq(@glob.match_any_pattern(patterns, "package.json"), false)
 /// }
 /// ```
-pub fn match_any_pattern(patterns : Array[String], path : String) -> Bool raise {
+pub fn match_any_pattern(patterns : Array[String], path : String) -> Bool {
   for pattern in patterns {
     if glob(pattern, path) {
       return true
@@ -267,10 +268,10 @@ pub fn match_any_pattern(patterns : Array[String], path : String) -> Bool raise 
 /// ```
 pub fn is_valid_pattern(pattern : String) -> Bool {
   let mut bracket_count = 0
-  for i = 0; i < pattern.length(); i = i + 1 {
-    match get_char(pattern, i) {
-      Some('[') => bracket_count = bracket_count + 1
-      Some(']') => {
+  for c in pattern {
+    match c {
+      '[' => bracket_count = bracket_count + 1
+      ']' => {
         bracket_count = bracket_count - 1
         if bracket_count < 0 {
           return false
@@ -299,8 +300,8 @@ pub fn is_valid_pattern(pattern : String) -> Bool {
 /// ```
 pub fn escape_glob(text : String) -> String {
   let mut result = ""
-  for i = 0; i < text.length(); i = i + 1 {
-    match text[i].unsafe_to_char() {
+  for c in text {
+    match c {
       '*' => result = result + "\\*"
       '?' => result = result + "\\?"
       '[' => result = result + "\\["

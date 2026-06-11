@@ -6,21 +6,21 @@ pub fn escape_glob(String) -> String
 
 pub fn get_char(String, Int) -> Char?
 
-pub fn glob(String, String) -> Bool raise
+pub fn glob(String, String) -> Bool
 
-pub fn glob_filter(String, Array[String]) -> Array[String] raise
+pub fn glob_filter(String, Array[String]) -> Array[String]
 
-pub fn glob_match_any(String, Array[String]) -> Bool raise
+pub fn glob_match_any(String, Array[String]) -> Bool
 
 pub fn is_path_separator(Char) -> Bool
 
 pub fn is_valid_pattern(String) -> Bool
 
-pub fn match_any_pattern(Array[String], String) -> Bool raise
+pub fn match_any_pattern(Array[String], String) -> Bool
 
 pub fn match_char(Char, Char) -> Bool
 
-pub fn match_here(String, String) -> Bool raise
+pub fn match_here(String, String) -> Bool
 
 // Errors
 

@@ -15,6 +15,8 @@ test "glob: question mark wildcard" {
   assert_eq(@glob.glob("a?c", "abbc"), false)
   assert_eq(@glob.glob("???", "abc"), true)
   assert_eq(@glob.glob("???", "ab"), false)
+  assert_eq(@glob.glob("?", "😀"), true)
+  assert_eq(@glob.glob("??", "😀"), false)
 }
 
 ///|
@@ -69,6 +71,8 @@ test "glob: character helpers" {
   assert_true(@glob.get_char("hello", 0) == Some('h'))
   assert_true(@glob.get_char("hello", 5) == None)
   assert_true(@glob.get_char("hello", -1) == None)
+  assert_true(@glob.get_char("😀x", 0) == Some('😀'))
+  assert_true(@glob.get_char("😀x", 1) == Some('x'))
 }
 
 ///|
