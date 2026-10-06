@@ -4,8 +4,6 @@ package "justjavac/glob"
 // Values
 pub fn escape_glob(String) -> String
 
-pub fn get_char(String, Int) -> Char?
-
 pub fn glob(String, String) -> Bool
 
 pub fn glob_filter(String, Array[String]) -> Array[String]
@@ -18,10 +16,6 @@ pub fn is_valid_pattern(String) -> Bool
 
 pub fn match_any_pattern(Array[String], String) -> Bool
 
-pub fn match_char(Char, Char) -> Bool
-
-pub fn match_here(String, String) -> Bool
-
 // Errors
 
 // Types and methods
@@ -29,4 +23,3 @@ pub fn match_here(String, String) -> Bool
 // Type aliases
 
 // Traits
-

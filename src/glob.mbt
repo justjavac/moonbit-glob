@@ -23,16 +23,7 @@
 /// Match one pattern character against one text character.
 ///
 /// `?` matches any single character. All other characters must be equal.
-///
-/// # Example
-/// ```mbt check
-/// test {
-///   assert_eq(@glob.match_char('a', 'a'), true)
-///   assert_eq(@glob.match_char('?', 'x'), true)
-///   assert_eq(@glob.match_char('a', 'b'), false)
-/// }
-/// ```
-pub fn match_char(pattern : Char, char : Char) -> Bool {
+fn match_char(pattern : Char, char : Char) -> Bool {
   pattern == '?' || pattern == char
 }
 
@@ -51,29 +42,6 @@ pub fn match_char(pattern : Char, char : Char) -> Bool {
 /// ```
 pub fn is_path_separator(c : Char) -> Bool {
   c == '/' || c == '\\'
-}
-
-///|
-/// Safely read one character from `s` by zero-based index.
-///
-/// This helper returns `None` instead of raising when the index is out of
-/// bounds.
-///
-/// # Example
-/// ```mbt check
-/// test {
-///   assert_true(@glob.get_char("moon", 0) == Some('m'))
-///   assert_true(@glob.get_char("moon", 3) == Some('n'))
-///   assert_true(@glob.get_char("moon", 4) == None)
-/// }
-/// ```
-pub fn get_char(s : String, index : Int) -> Char? {
-  let chars = s.to_array()
-  if index >= 0 && index < chars.length() {
-    Some(chars[index])
-  } else {
-    None
-  }
 }
 
 ///|
@@ -133,30 +101,6 @@ fn match_chars(
 }
 
 ///|
-/// Match `pattern` against `text` using the package's recursive glob rules.
-///
-/// This is the low-level matcher that powers `glob`. Most callers should use
-/// `glob` directly.
-///
-/// Matching rules:
-///
-/// - `**` can consume any suffix, including path separators
-/// - `*` can consume any suffix until the next path separator
-/// - `?` matches exactly one character
-/// - every other character matches literally
-///
-/// # Example
-/// ```mbt check
-/// test {
-///   assert_eq(@glob.match_here("**/*.mbt", "src/lib/main.mbt"), true)
-///   assert_eq(@glob.match_here("*.mbt", "src/lib/main.mbt"), false)
-/// }
-/// ```
-pub fn match_here(pattern : String, text : String) -> Bool {
-  match_chars(pattern.to_array(), 0, text.to_array(), 0)
-}
-
-///|
 /// Match one glob `pattern` against one `text` path.
 ///
 /// This is the main public entry point for the package.
@@ -179,7 +123,7 @@ pub fn match_here(pattern : String, text : String) -> Bool {
 /// }
 /// ```
 pub fn glob(pattern : String, text : String) -> Bool {
-  match_here(pattern, text)
+  match_chars(pattern.to_array(), 0, text.to_array(), 0)
 }
 
 ///|

@@ -67,15 +67,6 @@ test "glob: utility functions" {
 }
 
 ///|
-test "glob: character helpers" {
-  assert_true(@glob.get_char("hello", 0) == Some('h'))
-  assert_true(@glob.get_char("hello", 5) == None)
-  assert_true(@glob.get_char("hello", -1) == None)
-  assert_true(@glob.get_char("😀x", 0) == Some('😀'))
-  assert_true(@glob.get_char("😀x", 1) == Some('x'))
-}
-
-///|
 test "glob: pattern validation" {
   assert_eq(@glob.is_valid_pattern("*.mbt"), true)
   assert_eq(@glob.is_valid_pattern("test[abc]"), true)
