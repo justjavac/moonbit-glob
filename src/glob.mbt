@@ -48,9 +48,9 @@ pub fn is_path_separator(c : Char) -> Bool {
 /// Match `pattern` and `text` starting at character offsets.
 fn match_chars(
   pattern : Array[Char],
-  pattern_index : Int,
+  pattern_index : Int32,
   text : Array[Char],
-  text_index : Int,
+  text_index : Int32,
 ) -> Bool {
   let pattern_len = pattern.length()
   let text_len = text.length()
